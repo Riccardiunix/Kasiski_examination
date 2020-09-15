@@ -2,36 +2,43 @@ import sys
 import math
 import numpy
 import time
+import argparse
 
 def factorization(n):
-    if len(dp[n]) == 0:
+    if not n in dp:
+        dp[n] = {}
         for i in range(int(round(math.sqrt(n))), 0, -1):
             if n % i == 0:
                 dp[n][i] = 0
                 dp[n][n//i] = 0
-                for j in factorization(i):
+                for j in factorization(i).keys():
                     dp[n][j] = 0
                     dp[n][n//j] = 0
                 if i != n//i:
-                    for j in factorization(n//i):
+                    for j in factorization(n//i).keys():
                         dp[n][j] = 0
                         dp[n][n//j] = 0
     return dp[n]
 
 start = time.time()
+
 if __name__ == "__main__":
-    text = open("text.txt", "r").read().lower().replace('\n', '')
-    text_val = []
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-i', type=str, help="the input file")
+    parser.add_argument('-o', type=str, default="", help="the output file")
+    parser.add_argument('-l', type=int, default=0, help="the letter frequency to use for the frequency analysis.\n0: italian; 1: english")
+    args = parser.parse_args()
+    
+    text = open(args.i, "r").read().lower().replace('\n', '')
     text_ok = ""
     comb = {}
     
-    for i in range(len(text)):
-        if ord(text[i]) > 96 and ord(text[i]) < 123:
-            text_val.append(ord(text[i]) - 97)
-            text_ok += text[i]
+    for char in text:
+        if ord(char) > 96 and ord(char) < 123:
+            text_ok += char
     
     print("Finding pattern and calculating distance... ")
-    a = [0] * (len(text_ok))
+    a = {}
     m = 0
     for i in range(len(text_ok) - 1):
         pat = text_ok[i]
@@ -40,30 +47,32 @@ if __name__ == "__main__":
             if not pat in comb:
                 comb[pat] = [i]
             else:
-                arr = comb[pat]
-                for l in arr:
-                    a[i - l] += 1
-                m = max(m, i - arr[0])
+                for l in comb[pat]:
+                    if (i - l) in a:
+                        a[i - l] += 1
+                    else:
+                        a[i - l] = 1
+                m = max(m, i - comb[pat][0])
                 comb[pat].append(i)
     del comb
-    a = a[:(m + 1)]
+    cont = 0
+    for i in a:
+        if i == 0:
+            cont += 1
     
     print("Calculating key length... ")
-    dp = [{}, {}]
+    dp = {}
     b = [0] * (m + 1)
-    for i in range(2, m+1):
-        dp.append({})
-        if a[i] > 0:
-            for j in factorization(i).keys():
-                b[j] -= a[i]
+    for i in a.keys():
+        for j in factorization(i).keys():
+            b[j] -= a[i]
     del dp
     
-    fact = [1]
-    if m <= 492:
-        for i in numpy.argsort(b[1:])[:min(m, 9)]:
-            fact.append(i)
+    fact = []
+    if m <= 1019:
+        fact = numpy.argsort(b[2:])[:min(m, 10)]
     else:
-        for i in range(min(m, 9)):
+        for i in range(min(m, 10)):
             mi = b[2]
             miI = 2
             for j in range(3, m+1):
@@ -73,9 +82,10 @@ if __name__ == "__main__":
             b[miI] = 0
             fact.append(miI)
     
-    eng = [8.167, 1.492, 2.782, 4.253, 12.702, 2.228, 2.015, 6.094, 6.966, 0.153, 0.772, 4.025, 2.406, 6.749, 7.507, 1.929, 0.095, 5.987, 6.327, 9.056, 2.758, 0.978, 2.360, 0.15, 1.974, 0.074]
-    ita = [11.293, 0.911, 4.822, 3.724, 12.044, 1.115, 1.742, 1.465, 9.752, 0.002, 0.00001, 5.644, 2.544, 7.087, 9.624, 2.918, 0.795, 6.555, 5.506, 5.973, 3.581, 2.220, 0.001, 0.006, 0.001, 0.675]
-    perc = ita
+    perc = [11.293, 0.911, 4.822, 3.724, 12.044, 1.115, 1.742, 1.465, 9.752, 0.002, 0.00001, 5.644, 2.544, 7.087, 9.624, 2.918, 0.795, 6.555, 5.506, 5.973, 3.581, 2.220, 0.001, 0.006, 0.001, 0.675]
+    if args.l == 1:
+        perc = [8.167, 1.492, 2.782, 4.253, 12.702, 2.228, 2.015, 6.094, 6.966, 0.153, 0.772, 4.025, 2.406, 6.749, 7.507, 1.929, 0.095, 5.987, 6.327, 9.056, 2.758, 0.978, 2.360, 0.15, 1.974, 0.074]
+    
 
     for lung in fact:
         #Popolo array
@@ -83,11 +93,11 @@ if __name__ == "__main__":
         som = [0] * lung
         
         #Calcolo della freqenza dei caratteri nella sotto sequenza --O(n)
-        for i in range(len(text_val)):
+        for i in range(len(text_ok)):
             if i < lung:
                 freq.append([0] * 26)
             som[i % lung] += 1
-            freq[i % lung][text_val[i]] += 1
+            freq[i % lung][ord(text_ok[i])-97] += 1
         
         key = ""
         key_val = []
@@ -111,7 +121,7 @@ if __name__ == "__main__":
         for i in range(len(text)):
             solved[i] = text[i]
             if ord(text[i]) > 96 and ord(text[i]) < 123: 
-                solved[i] = chr(97 + (text_val[j] - key_val[j % lung]) % 26)
+                solved[i] = chr(97 + (ord(text_ok[j]) - key_val[j % lung] - 97) % 26)
                 j += 1
         print(''.join(solved) + "\n")
     print(time.time() - start)

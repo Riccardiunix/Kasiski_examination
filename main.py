@@ -7,14 +7,15 @@ import argparse
 def factorization(n):
     if not n in dp:
         dp[n] = {}
-        for i in range(int(round(math.sqrt(n))), 0, -1):
+        dp[n][n] = 0
+        for i in range(int(round(math.sqrt(n))), 1, -1):
             if n % i == 0:
                 dp[n][i] = 0
-                dp[n][n//i] = 0
                 for j in factorization(i).keys():
                     dp[n][j] = 0
                     dp[n][n//j] = 0
                 if i != n//i:
+                    dp[n][n//i] = 0
                     for j in factorization(n//i).keys():
                         dp[n][j] = 0
                         dp[n][n//j] = 0
@@ -69,8 +70,9 @@ if __name__ == "__main__":
     del dp
     
     fact = []
+    print(m)
     if m <= 1019:
-        fact = numpy.argsort(b[2:])[:min(m, 10)]
+        fact = numpy.argsort(b[1:])[:min(m, 10)]
     else:
         for i in range(min(m, 10)):
             mi = b[2]
@@ -86,7 +88,8 @@ if __name__ == "__main__":
     if args.l == 1:
         perc = [8.167, 1.492, 2.782, 4.253, 12.702, 2.228, 2.015, 6.094, 6.966, 0.153, 0.772, 4.025, 2.406, 6.749, 7.507, 1.929, 0.095, 5.987, 6.327, 9.056, 2.758, 0.978, 2.360, 0.15, 1.974, 0.074]
     
-
+    if args.o != '':
+        out = open(args.o, 'w')
     for lung in fact:
         #Popolo array
         freq = []
@@ -123,6 +126,8 @@ if __name__ == "__main__":
             if ord(text[i]) > 96 and ord(text[i]) < 123: 
                 solved[i] = chr(97 + (ord(text_ok[j]) - key_val[j % lung] - 97) % 26)
                 j += 1
+        if args.o != '':
+            out.write("\t%s\t%d\n" % (key, lung) + ''.join(solved) + "\n\n")
         print(''.join(solved) + "\n")
     print(time.time() - start)
             

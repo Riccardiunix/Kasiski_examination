@@ -1,4 +1,3 @@
-import sys
 import math
 import numpy
 import time
@@ -11,15 +10,15 @@ def factorization(n):
         for i in range(int(round(math.sqrt(n))), 1, -1):
             if n % i == 0:
                 dp[n][i] = 0
-                for j in factorization(i).keys():
+                for j in factorization(i):
                     dp[n][j] = 0
                     dp[n][n//j] = 0
                 if i != n//i:
                     dp[n][n//i] = 0
-                    for j in factorization(n//i).keys():
+                    for j in factorization(n//i):
                         dp[n][j] = 0
                         dp[n][n//j] = 0
-    return dp[n]
+    return dp[n].keys()
 
 start = time.time()
 
@@ -35,7 +34,8 @@ if __name__ == "__main__":
     comb = {}
     
     for char in text:
-        if ord(char) > 96 and ord(char) < 123:
+        val = ord(char)
+        if val > 96 and val < 123:
             text_ok += char
     
     print("Finding pattern and calculating distance... ")
@@ -56,23 +56,18 @@ if __name__ == "__main__":
                 m = max(m, i - comb[pat][0])
                 comb[pat].append(i)
     del comb
-    cont = 0
-    for i in a:
-        if i == 0:
-            cont += 1
     
     print("Calculating key length... ")
     dp = {}
     b = [0] * (m + 1)
     for i in a.keys():
-        for j in factorization(i).keys():
+        for j in factorization(i):
             b[j] -= a[i]
     del dp
     
     fact = []
-    print(m)
     if m <= 1019:
-        fact = numpy.argsort(b[1:])[:min(m, 10)]
+        fact = numpy.argsort(b[2:])[:min(m, 10)]
     else:
         for i in range(min(m, 10)):
             mi = b[2]
@@ -120,12 +115,14 @@ if __name__ == "__main__":
             
         print("\t%s\t%d" % (key, lung))
         j = 0
-        solved = [""] * len(text)
+        solved = []
         for i in range(len(text)):
-            solved[i] = text[i]
             if ord(text[i]) > 96 and ord(text[i]) < 123: 
-                solved[i] = chr(97 + (ord(text_ok[j]) - key_val[j % lung] - 97) % 26)
+                solved.append(chr(97 + (ord(text_ok[j]) - key_val[j % lung] - 97) % 26))
                 j += 1
+            else:
+                solved.append(text[i])
+                
         if args.o != '':
             out.write("\t%s\t%d\n" % (key, lung) + ''.join(solved) + "\n\n")
         print(''.join(solved) + "\n")

@@ -31,6 +31,7 @@ if __name__ == "__main__":
     
     text = open(args.i, "r").read().lower().replace('\n', '')
     text_ok = ""
+    allComb = {}
     comb = {}
     
     for char in text:
@@ -39,23 +40,29 @@ if __name__ == "__main__":
             text_ok += char
     
     print("Finding pattern and calculating distance... ")
+    dim = len(text_ok)
     a = {}
     m = 0
-    for i in range(len(text_ok) - 1):
+    for i in range(dim-1):
         pat = text_ok[i]
-        for j in range(i+1, 1 + (len(text_ok) + i) // 2):
+        for j in range(i+1, min(dim, (dim//2)+i+1)):
             pat += text_ok[j]
-            if not pat in comb:
-                comb[pat] = [i]
-            else:
+            if pat in comb:
                 for l in comb[pat]:
-                    if (i - l) in a:
-                        a[i - l] += 1
+                    diff = i - l
+                    if diff in a:
+                        a[diff] += 1
                     else:
-                        a[i - l] = 1
+                        a[diff] = 1
                 m = max(m, i - comb[pat][0])
                 comb[pat].append(i)
+            elif pat in allComb:
+                comb[pat] = [allComb[pat], i]
+                del allComb[pat]
+            else:
+                allComb[pat] = i
     del comb
+    del allComb
     
     print("Calculating key length... ")
     dp = {}
@@ -68,8 +75,10 @@ if __name__ == "__main__":
     fact = []
     if m <= 1019:
         fact = numpy.argsort(b[2:])[:min(m, 10)]
-    else:
         for i in range(min(m, 10)):
+            fact[i] = fact[i] + 2  
+    else:
+        for i in range(10):
             mi = b[2]
             miI = 2
             for j in range(3, m+1):
@@ -85,6 +94,7 @@ if __name__ == "__main__":
     
     if args.o != '':
         out = open(args.o, 'w')
+    
     for lung in fact:
         #Popolo array
         freq = []

@@ -101,7 +101,7 @@ if __name__ == "__main__":
         som = [0] * lung
         
         #Calcolo della freqenza dei caratteri nella sotto sequenza --O(n)
-        for i in range(len(text_ok)):
+        for i in range(dim):
             if i < lung:
                 freq.append([0] * 26)
             som[i % lung] += 1
@@ -132,9 +132,9 @@ if __name__ == "__main__":
                 j += 1
             else:
                 solved.append(text[i])
-                
+        text_dec = ''.join(solved)
         if args.o != '':
-            out.write("\t%s\t%d\n" % (key, lung) + ''.join(solved) + "\n\n")
-        print(''.join(solved) + "\n")
+            out.write("\t{}\t{}\n{}\n\n".format(key, str(lung), text_dec))
+        print('{}\n'.format(text_dec))
     print(time.time() - start)
             
